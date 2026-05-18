@@ -27,7 +27,7 @@ for filename in os.listdir(input_directory):
                 reference_scale = None
             # Extract specimen name from filename, remove .json extension and everything from _annotations_config onwards
             specimen_name = filename.replace('.json', '').split('_annotations_config')[0]
-            # Clean up leading double underscore (e.g., "0__FG_GL_19T_340" -> "FG_GL_19T_340")
+            # Clean up leading double underscore if used with Phenopype (e.g., "0__FG_GL_19T_340" -> "FG_GL_19T_340")
             specimen_name = specimen_name.replace('0__', '', 1)
              # Append the specimen data
             specimen_data.append({'specimen': specimen_name, 'scale': reference_scale})
