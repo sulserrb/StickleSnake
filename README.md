@@ -62,17 +62,16 @@ This pipeline is meant to be run on linux/WSL.
 There are important dependencies to download before starting. Most essential is SnakeMake itself: https://snakemake.github.io/
 There are a few different options for this, depending on your preferences (see the installation page of SnakeMake itself for more details).
 
+* Snakemake (pip)
+```sh
+  pip install snakemake
+```
 
 * Snakemake (conda)
 ```sh
   conda create -c conda-forge -c bioconda -c nodefaults -n snakemake snakemake
   conda activate snakemake
   conda install -c conda-forge "setuptools<82" 
-```
-
-* Snakemake (pip)
-```sh
-  pip install snakemake
 ```
 * Snakemake (pixi)
 
@@ -176,7 +175,7 @@ A final window will pop up.  Draw the template itself using left click + drag, e
 
 ![Step_3](Template_3.png)
 
-_For errors, additional examples, and use cases, please refer to the main paper (placeholder.url.com)_
+_For errors, additional examples, and use cases, please refer to the main paper. <URL TO BE INSERTED UPON PUBLICATION>_
 
 ## Main Program 
 
