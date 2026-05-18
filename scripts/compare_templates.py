@@ -1,5 +1,7 @@
-#Script to compare all predictor .dat files on test/train XML sets using shape_tester.py
-
+""""
+Script to compare all predictor .dat files on test/train XML sets using shape_tester.py included in ml-morph.
+The script will run shape_tester.py for each predictor file (with a .dat extension) against both test.xml and train.xml, and report any failures at the end.
+""""
 
 import argparse
 import subprocess

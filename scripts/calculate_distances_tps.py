@@ -1,3 +1,11 @@
+"""
+This script calculates the distances between corresponding landmarks in two .tps files.
+It is assumed that the first .tps file (File A) contains a subset of images, while the second .tps file (File B) contains the full dataset. 
+The script extracts the landmarks from both files, computes the Euclidean distances between corresponding landmarks for each image, and saves the results in a CSV file.
+
+"""
+
+
 import math
 import os.path
 import argparse

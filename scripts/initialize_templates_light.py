@@ -1,4 +1,11 @@
-# setup_template.py  (run manually: python setup_template.py)
+"""
+Script to initialize phenopype templates for the stickleback pipeline, and is designed to be run on a GUI before starting the pipeline.
+This script allows you to create a reference template for phenopype by interactively selecting a region of interest on a reference image. The template is saved as a PNG file and the corresponding annotation is saved as a JSON file for later use in the pipeline. 
+The script takes two command-line arguments:
+--template_name: A unique identifier for the template (cannot contain underscores).
+--ref_image_path: The file path to the reference image that will be used to create the template.    
+
+"""
 import phenopype as pp
 import cv2
 import argparse
