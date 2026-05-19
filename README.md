@@ -160,7 +160,7 @@ This program can automatically relabel files in images, set a scale, and landmar
 While we have provided a test template for running a tutorial, users will almost certainly want to provide their own templates for matching. This can be done with the following command from the root directory: 
 
 ```sh
-python initialize_templates_light.py --template_name <name for template> --ref_image_path <path/to/imaage>
+python scripts/initialize_templates_light.py --template_name <name for template> --ref_image_path <path/to/imaage>
 ```
 
 A window will then pop up. Measure two points on a ruler or known reference object with the left click, remove with the right click. Press ENTER to confirm when ready. 
