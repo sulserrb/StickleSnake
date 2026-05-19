@@ -108,7 +108,7 @@ apt install -y x11-apps
 
 If you want to create your own templates (highly recommended), you will also need to install phenopype: https://www.phenopype.org/
 See the installation page of phenopype for more details. It is important that this program is installed on a machine that allows for interactive (GUI) input.
-The bulk of the pipeline can be run headless and/or on a cluster, and the files can be simply transferred to these machines
+The bulk of the pipeline can be run headless and/or on a cluster, and the files can be simply transferred to these machines.
 
 * phenopype (pip)
 ```sh
@@ -183,7 +183,10 @@ The StickleSnake pipeline is broken into two main components, to better divide t
 
 ### Preprocessing step 
 
-Check the config file (default: resources/configs/StickleSnake.yaml) and the user profile (default: workflow/profiles/default/config.yaml)  to ensure settings and filepaths are set correctly prior to use. This will run all necessary steps up to the landmark training and prediction
+Check the config file (default: resources/configs/StickleSnake.yaml) and the user profile (default: workflow/profiles/default/config.yaml) to ensure settings and filepaths are set correctly prior to use. 
+For default settings and following along with this tutorial, changing the path of the container directory should be all that is needed. 
+
+The following command will run all necessary steps up to the landmark training and prediction:
 
 ```bash
 snakemake --snakefile workflow/preprocessing.smk --profile workflow/profiles/default 
