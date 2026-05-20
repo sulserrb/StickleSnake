@@ -195,7 +195,7 @@ def crop_image_to_bounding_box_max_score(image_np, detections, out_path = "", sa
     (left, right, top, bottom) = (int(xmin * image_np.shape[1]), int(xmax * image_np.shape[1]),
                                   int(ymin * image_np.shape[0]), int(ymax * image_np.shape[0]))
     if save_bbox_file:
-        # bad implementation of writing bboxes to files. but I am lazy 
+        # Quick implementation of bounding box to files 
         os.makedirs(out_path, exist_ok=True)
         data = {
             "image_name": image_name,
@@ -213,7 +213,7 @@ def crop_image_to_bounding_box_max_score(image_np, detections, out_path = "", sa
     return detected_object
 
 def str2bool(v):
-    # helper function to parse boolean arguments from command line
+    # Helper function to parse boolean arguments from command line
     if isinstance(v, bool): return v
     if v.lower() in ("yes","true","t","1"): return True
     if v.lower() in ("no","false","f","0"): return False
