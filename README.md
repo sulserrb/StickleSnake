@@ -76,7 +76,8 @@ There are a few different options for this, depending on your preferences (see t
 * Snakemake (pixi)
 
 ```sh
-  pixi init
+  pixi init snakemake
+  cd snakemake
   pixi workspace channel add conda-forge
   pixi workspace channel add bioconda
   pixi add snakemake
