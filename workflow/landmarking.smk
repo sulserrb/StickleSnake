@@ -39,6 +39,7 @@ rule preprocess_landmark_model:
         "python3 scripts/ml-morph_scripts/preprocessing.py "
         "-i {input.directory} "
         "-t {input.lands} "
+        "-k True "
         "> {log.notebook} 2>&1"
 
 rule train_landmark_model: 

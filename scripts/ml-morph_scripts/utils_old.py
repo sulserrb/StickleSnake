@@ -16,9 +16,6 @@ import pandas as pd
 import cv2
 import dlib
 
-#Added for Kfold
-from sklearn.model_selection import KFold
-
 #Tools for using previously annotated datasets
 
 def read_csv(input):
@@ -421,59 +418,3 @@ def dlib_xml_to_tps(xml_file: str):
                         wr.writerows([data])
                     wr.writerows([['IMAGE='+ image.attrib['file']],['ID='+ str(int(id))]])
                     id += 1
-
-#New functions to include KFold cross-validation instead of a simple split to test and train
-
-def split_train_test_kfold(input_dir, output_dir = "data", kfold=5): 
-    '''
-    Splits an image directory into 'train' and 'test' directories. The original image directory is preserved. 
-    When creating the new directories, this function converts all image files to 'jpg'. The function returns
-    a dictionary containing the image dimensions in the 'train' and 'test' directories.
-    
-    Parameters:
-        input_dir(str)=original image directory
-        output_dir(str)= name of the output directory where the 'train' and 'test' directories will be created. The default is 'data'.
-        kfold(int)= number of folds for KFold cross-validation. The default is 5.
-        
-    Returns:
-        sizes (dict): dictionary containing the image dimensions in the 'train' and 'test' directories.
-    '''
-    # Listing the filenames.Folders must contain only image files (extension can vary).Hidden files are ignored
-    filenames = os.listdir(input_dir)
-    filenames = [os.path.join(input_dir, f) for f in filenames if not f.startswith('.')]
-
-    # Splitting the images into 'train' and 'test' directories (80/20 split)
-    random.seed(845)
-    filenames.sort()
-    random.shuffle(filenames)
-    split = int(0.8 * len(filenames))
-    train_set = filenames[:split]
-    test_set = filenames[split:]
-
-    kf = KFold(n_splits=kfold, shuffle=True, random_state=42)
-        for train_idx, test_idx in kf.split(filenames):
-        train_set = [filenames[i] for i in train_idx]
-        test_set = [filenames[i] for i in test_idx]
-
-    #DEBUGGING
-    print("Train set: {} images".format(len(train_set)))
-    print("Test set: {} images".format(len(test_set)))
-
-    filenames = {'train':train_set,
-                 'test': test_set}
-    sizes={}
-    for split in ['train','test']:
-        sizes[split]={}
-        split_dir = os.path.join(output_dir, split)
-        if not os.path.exists(split_dir):
-            os.mkdir(split_dir)
-        else:
-            print("Warning: the folder {} already exists. It's being replaced".format(split_dir))
-            shutil.rmtree(split_dir)
-            os.mkdir(split_dir)
-
-        for filename in filenames[split]:
-            basename=os.path.basename(filename)
-            name=os.path.splitext(basename)[0] + '.jpg'
-            sizes[split][name]=image_prep(filename,name,split_dir)
-    #return sizes
