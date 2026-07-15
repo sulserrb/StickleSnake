@@ -34,7 +34,7 @@ def split_train_test_kfold(input_dir, output_dir = "data", kfold=5):
     test_set = filenames[split:]
 
     kf = KFold(n_splits=kfold, shuffle=True, random_state=42)
-        for train_idx, test_idx in kf.split(filenames):
+    for train_idx, test_idx in kf.split(filenames):
         train_set = [filenames[i] for i in train_idx]
         test_set = [filenames[i] for i in test_idx]
 

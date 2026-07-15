@@ -424,7 +424,7 @@ def dlib_xml_to_tps(xml_file: str):
 
 #New functions to include KFold cross-validation instead of a simple split to test and train
 
-def split_train_test_kfold(input_dir, output_dir = "data", kfold=5): 
+def split_train_test_kfold(input_dir, output_dir = "output", fold): 
     '''
     Splits an image directory into 'train' and 'test' directories. The original image directory is preserved. 
     When creating the new directories, this function converts all image files to 'jpg'. The function returns
@@ -438,20 +438,15 @@ def split_train_test_kfold(input_dir, output_dir = "data", kfold=5):
     Returns:
         sizes (dict): dictionary containing the image dimensions in the 'train' and 'test' directories.
     '''
-    # Listing the filenames.Folders must contain only image files (extension can vary).Hidden files are ignored
-    filenames = os.listdir(input_dir)
-    filenames = [os.path.join(input_dir, f) for f in filenames if not f.startswith('.')]
+    # Listing the filenames generated from text files 
+    test = open(os.join(output_dir, f"fold{fold}", "test.txt"), 'r')
+    train = open(os.join(output_dir, f"fold{fold}", "train.txt"), 'r')
 
-    # Splitting the images into 'train' and 'test' directories (80/20 split)
-    random.seed(845)
-    filenames.sort()
-    random.shuffle(filenames)
-    split = int(0.8 * len(filenames))
     train_set = filenames[:split]
     test_set = filenames[split:]
 
     kf = KFold(n_splits=kfold, shuffle=True, random_state=42)
-        for train_idx, test_idx in kf.split(filenames):
+    for train_idx, test_idx in kf.split(filenames):
         train_set = [filenames[i] for i in train_idx]
         test_set = [filenames[i] for i in test_idx]
 
