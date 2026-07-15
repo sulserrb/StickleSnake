@@ -3,7 +3,7 @@ configfile: "resources/configs/model_params.yaml" #We need to specify the config
 if not config.get("run_all"): #set "all" rule when run independently, but not when running the whole pipeline
     rule all:
         input:
-            "data/output/results_table.tex"
+            "data/output/results_table.tex" #We need to specify the number of folds for cross-validation
 
 rule crop_lands: 
     input: 
@@ -22,38 +22,67 @@ rule crop_lands:
         "{input.directory}"
         "> {log.notebook} 2>&1"
 
+rule generate_folds: 
+    input:
+        directory = "data/cropped_images/",
+        lands = "data/landmarks/cropped_input.tps"
+    params:
+        kfolds = config["folds"] #We need to specify the number of folds for cross-validation
+    output:
+        expand(["data/output/fold{fold}/test.txt",
+                "data/output/fold{fold}/train.txt"], 
+                fold=range(config["folds"]))
+    conda: 
+        "envs/ml_morph.yaml" #We need to specify the conda environment
+    log:
+        notebook="logs/generate_folds.log" #log file path
+    benchmark:
+        "benchmarks/bench_generate_folds.txt"
+    shell:
+        "python3 scripts/ml-morph_scripts/Kfold.py "
+        "-i {input.directory} "
+        "-o data/output/"
+        "-k {params.kfolds} "
+
 rule preprocess_landmark_model: 
     input: 
         directory = "data/cropped_images/",
-        lands = "data/landmarks/cropped_input.tps"
+        lands = "data/landmarks/cropped_input.tps",
+        fold_dir = "data/output/fold{fold}",
+        fold_files = ["data/output/fold{fold}/test.txt", "data/output/fold{fold}/train.txt"]
     output: 
-        "data/train.xml",
-        "data/test.xml",
+        "data/output/fold{fold}/train.xml",
+        "data/output/fold{fold}/test.xml",
+        temp("data/output/fold{fold}/test/"),
+        temp("data/output/fold{fold}/train/")
     conda: 
         "envs/ml_morph.yaml" #We need to specify the conda environment
     log: 
-        notebook="logs/preprocess_landmark_model.log" #log file path
+        notebook="logs/preprocess_landmark_model_{fold}.log" #log file path
     benchmark:
-        "benchmarks/bench_preprocess_landmark_model.txt"
+        "benchmarks/bench_preprocess_landmark_model_{fold}.txt"
     shell:
         "python3 scripts/ml-morph_scripts/preprocessing.py "
         "-i {input.directory} "
         "-t {input.lands} "
         "-k True "
+        "-f {wildcards.fold}"
         "> {log.notebook} 2>&1"
 
 rule train_landmark_model: 
     input: 
-        train = "data/train.xml",
-        test = "data/test.xml",
+        train = "data/output/fold{fold}/test.xml",
+        test = "data/output/fold{fold}/train.xml",
+        test_dir = "data/output/fold{fold}/test/",
+        train_dir = "data/output/fold{fold}/train/"
     output: 
-        "models/landmark_model.dat"
+        "models/landmark_model_{fold}.dat"
     conda: 
         "envs/ml_morph.yaml" #We need to specify the conda environment
     log:
-        notebook="logs/train_landmark_model.log" #log file path
+        notebook="logs/train_landmark_model_{fold}.log" #log file path
     benchmark:
-        "benchmarks/bench_train_landmark_model.txt"
+        "benchmarks/bench_train_landmark_model_{fold}.txt"
     shell:
         "python3 scripts/ml-morph_scripts/shape_trainer.py "
         "-d {input.train} "
@@ -68,6 +97,8 @@ rule train_landmark_model:
         "-s {config[test_splits]} "
         "-o {output} "
         "> {log.notebook} 2>&1"
+
+#Add rule comparing and choose best model for future use
 
 rule predict_landmarks:
     input:

@@ -1,10 +1,12 @@
 # Part of the standard library
+import csv
 import os
 import sys
 import glob
 import argparse
 # Not part of the standard library
 import dlib
+import csv
 
 #Parsing arguments
 ap = argparse.ArgumentParser()
@@ -44,6 +46,8 @@ options.num_test_splits = args['test_splits']
 options.oversampling_amount = args['oversampling']
 options.be_verbose = True
 
+#Update: added saved .csv output of training results for reproducibility
+
 #Training the model
 train_path = os.path.abspath(args['dataset']) #shift to absolute path to avoid dlib file handling issues
 dlib.train_shape_predictor(train_path, args['out'], options) #remove.dat extension for testing to avoid dlib file handling issues
@@ -55,3 +59,4 @@ if args['test'] is not None:
     test_path = os.path.abspath(args['test']) #shift to absolute path to avoid dlib file handling issues
     print("Testing error (average pixel deviation): {}".format(
         dlib.test_shape_predictor(test_path, args['out']))) #remove.dat extension for testing to avoid dlib file handling issues
+    

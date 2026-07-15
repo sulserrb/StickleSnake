@@ -424,7 +424,7 @@ def dlib_xml_to_tps(xml_file: str):
 
 #New functions to include KFold cross-validation instead of a simple split to test and train
 
-def split_train_test_kfold(input_dir, output_dir = "output", fold): 
+def split_train_test_kfold(input_dir, fold, output_dir = "data/output", ): 
     '''
     Splits an image directory into 'train' and 'test' directories. The original image directory is preserved. 
     When creating the new directories, this function converts all image files to 'jpg'. The function returns
@@ -433,22 +433,16 @@ def split_train_test_kfold(input_dir, output_dir = "output", fold):
     Parameters:
         input_dir(str)=original image directory
         output_dir(str)= name of the output directory where the 'train' and 'test' directories will be created. The default is 'data'.
-        kfold(int)= number of folds for KFold cross-validation. The default is 5.
+        kfold(int)= number of folds for KFold cross-validation, used to assign which fold is generated each time the function is called.
         
     Returns:
         sizes (dict): dictionary containing the image dimensions in the 'train' and 'test' directories.
     '''
     # Listing the filenames generated from text files 
-    test = open(os.join(output_dir, f"fold{fold}", "test.txt"), 'r')
-    train = open(os.join(output_dir, f"fold{fold}", "train.txt"), 'r')
-
-    train_set = filenames[:split]
-    test_set = filenames[split:]
-
-    kf = KFold(n_splits=kfold, shuffle=True, random_state=42)
-    for train_idx, test_idx in kf.split(filenames):
-        train_set = [filenames[i] for i in train_idx]
-        test_set = [filenames[i] for i in test_idx]
+    with open(os.path.join(output_dir, f"fold{fold}", "test.txt"), 'r') as f:
+        test_set = f.read().splitlines()
+    with open(os.path.join(output_dir, f"fold{fold}", "train.txt"), 'r') as f:
+        train_set = f.read().splitlines()
 
     #DEBUGGING
     print("Train set: {} images".format(len(train_set)))
@@ -459,7 +453,7 @@ def split_train_test_kfold(input_dir, output_dir = "output", fold):
     sizes={}
     for split in ['train','test']:
         sizes[split]={}
-        split_dir = os.path.join(output_dir, split)
+        split_dir = os.path.join(output_dir, f"fold{fold}", split)
         if not os.path.exists(split_dir):
             os.mkdir(split_dir)
         else:
@@ -471,4 +465,4 @@ def split_train_test_kfold(input_dir, output_dir = "output", fold):
             basename=os.path.basename(filename)
             name=os.path.splitext(basename)[0] + '.jpg'
             sizes[split][name]=image_prep(filename,name,split_dir)
-    #return sizes
+    return sizes
