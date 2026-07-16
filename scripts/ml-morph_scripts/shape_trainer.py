@@ -6,7 +6,6 @@ import glob
 import argparse
 # Not part of the standard library
 import dlib
-import csv
 
 #Parsing arguments
 ap = argparse.ArgumentParser()
@@ -51,12 +50,22 @@ options.be_verbose = True
 #Training the model
 train_path = os.path.abspath(args['dataset']) #shift to absolute path to avoid dlib file handling issues
 dlib.train_shape_predictor(train_path, args['out'], options) #remove.dat extension for testing to avoid dlib file handling issues
-print("Training error (average pixel deviation): {}".format(
-    dlib.test_shape_predictor(train_path, args['out']))) #remove.dat extension for testing to avoid dlib file handling issues
+
+train_error= dlib.test_shape_predictor(train_path, args['out'])
+print("Training error (average pixel deviation): {}".format(train_error)) #remove.dat extension for testing to avoid dlib file handling issues
 
 #Testing the model (if test data was provided)
 if args['test'] is not None:
     test_path = os.path.abspath(args['test']) #shift to absolute path to avoid dlib file handling issues
-    print("Testing error (average pixel deviation): {}".format(
-        dlib.test_shape_predictor(test_path, args['out']))) #remove.dat extension for testing to avoid dlib file handling issues
+    test_error= dlib.test_shape_predictor(test_path, args['out'])
+    print("Testing error (average pixel deviation): {}".format(test_error)) #remove.dat extension for testing to avoid dlib file handling issues
     
+    #Save csv 
+    base, _ = os.path.splitext(args["out"])
+    metrics_path = f"{base}_metrics.csv"
+
+    with open (metrics_path, 'w') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(['Metric', 'Value'])
+        writer.writerow(['Training Error', train_error])
+        writer.writerow(['Testing Error', test_error])

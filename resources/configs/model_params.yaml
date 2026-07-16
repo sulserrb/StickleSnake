@@ -8,4 +8,5 @@ feature_size: 1200
 test_splits: 20
 num_trees: 500
 input_tps: "data/raw_images/Test_Input.TPS"
+input_folder: "data/cropped_images/"
 folds: 5
