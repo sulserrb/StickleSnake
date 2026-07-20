@@ -8,7 +8,7 @@ Max_Mem = config.get("system_mem_mb")
 CROP_RESOURCES = {"mem_mb": int(Max_Mem)} if Max_Mem is not None else {}
 MEASURE_RESOURCES = {"mem_mb": int(Max_Mem * 0.25)} if Max_Mem is not None else {}
 
-if not config.get("run_all"): #set "all" rule when run independently, but not when running the whole pipeline
+if not config.get("included_by_parent", False): #set "all" rule when run independently, but not when running the whole pipeline
     rule all:
         input:
             "data/cropped_images", #indicating that the cropped images have been generated and saved in a new folder

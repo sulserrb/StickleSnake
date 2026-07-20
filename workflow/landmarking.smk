@@ -1,9 +1,9 @@
-if not config.get("run_all"): #set "all" rule when run independently, but not when running the whole pipeline
+if not config.get("included_by_parent", False): #set "all" rule when run independently, but not when running the whole pipeline
     rule all:
         input:
             "data/output/predicted_landmarks_scaled.tps" #Run to retrieve scaled landmarks for all specimens
 
-configfile: "resources/configs/model_params.yaml"
+configfile: "resources/configs/landmarking_params.yaml"
 
 rule predict_landmarks:
     input:

@@ -1,9 +1,11 @@
-configfile: "resources/configs/model_params.yaml" #We need to specify the config file that contains the parameters for the script
-
-if not config.get("run_all"): #set "all" rule when run independently, but not when running the whole pipeline
+if not config.get("included_by_parent", False): #set "all" rule when run independently, but not when running the whole pipeline
     rule all:
         input:
-            "data/output/results_table.tex" #We need to specify the number of folds for cross-validation
+            "data/output/fold_summary_table.tex" #We need to specify the number of folds for cross-validation
+
+configfile: "resources/configs/model_params.yaml" #We need to specify the config file that contains the parameters for the script
+
+
 
 rule crop_lands: 
     input: 
@@ -158,7 +160,8 @@ rule visualize_landmark_predictions:
 
 rule summarize_folds:
     input:
-        expand("models/landmark_model_{fold}_metrics.csv", fold=range(config["folds"]))
+        expand("models/landmark_model_{fold}_metrics.csv", fold=range(config["folds"])), 
+        expand("data/output/results_table_fold_{fold}.tex", fold=range(config["folds"])), 
     output:
         "data/output/fold_summary_table.tex"
     conda: 

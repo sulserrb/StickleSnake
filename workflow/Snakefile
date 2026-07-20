@@ -10,8 +10,8 @@ rule all:
     input: 
         "data/cropped_images", #indicating that the cropped images have been generated and saved in a new folder
         "data/measurements/specimen_scales.csv", #indicating that the measurements have been extracted from the images and saved in a csv file
-        "data/output/predicted_landmarks.tps", #indicating that the landmarks have been cropped from the tps files (or otherwise provided)
-        "data/output/results_table.tex", #indicating that the results table has been generated for metrics comparing model accuracy
+        "data/output/predicted_landmarks.tps", #indicating that the landmarks have been predicted from the tps files (or otherwise provided)
+        "data/output/fold_summary_table.tex", #indicating that at least one results table has been generated for metrics comparing model accuracy
         "data/measurements/.done", #indicating that the measurements have been generated and saved in a new file
         "data/output/predicted_landmarks_scaled.tps" #indicating that the predicted landmarks have been scaled and saved in a new file
     benchmark:

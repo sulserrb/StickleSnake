@@ -1,4 +1,3 @@
 #Configuration for final landmarking of stickleback images.
-
 input_folder: "data/cropped_images/"
 model_path: "models/landmark_model_1.dat" #A default model that should be used, ideally after K-fold cross validation has been run to determine that model settings are satisfactory. This model will be used to predict landmarks for all specimens in the input folder.
