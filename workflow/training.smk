@@ -5,7 +5,8 @@ if not config.get("included_by_parent", False): #set "all" rule when run indepen
 
 configfile: "resources/configs/model_params.yaml" #We need to specify the config file that contains the parameters for the script
 
-
+#Adjust for zero based indexing
+FOLDS = range(1, int(config["folds"]) + 1)
 
 rule crop_lands: 
     input: 
@@ -33,7 +34,7 @@ rule generate_folds:
     output:
         expand(["data/output/fold{fold}/test.txt",
                 "data/output/fold{fold}/train.txt"], 
-                fold=range(config["folds"]))
+                fold=FOLDS)
     conda: 
         "envs/ml_morph.yaml" #We need to specify the conda environment
     log:
@@ -43,7 +44,7 @@ rule generate_folds:
     shell:
         "python3 scripts/ml-morph_scripts/Kfold.py "
         "-i {input.directory} "
-        "-o data/output/"
+        "-o data/output/ "
         "-k {params.kfolds} "
 
 rule preprocess_landmark_model: 
@@ -156,16 +157,17 @@ rule visualize_landmark_predictions:
         "python3 scripts/analyze_distances.py "
         "--input_csv {input.land_data} "
         "--all_visualizations "
+        "--fold {wildcards.fold} "
         "> {log.notebook} 2>&1"
 
 rule summarize_folds:
     input:
-        expand("models/landmark_model_{fold}_metrics.csv", fold=range(config["folds"])), 
-        expand("data/output/results_table_fold_{fold}.tex", fold=range(config["folds"])), 
+        expand("models/landmark_model_{fold}_metrics.csv", fold=FOLDS), 
+        expand("data/output/results_table_fold_{fold}.tex", fold=FOLDS), 
     output:
         "data/output/fold_summary_table.tex"
     conda: 
-        "envs/ml_morph.yaml" #We need to specify the conda env
+        "envs/metrics_env.yaml" #We need to specify the conda env
     log:
         notebook="logs/summarize_folds.log" #log file path
     benchmark:

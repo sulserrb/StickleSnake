@@ -196,7 +196,7 @@ if __name__ == "__main__":
     parser.add_argument("--visualize_error_analysis", action="store_true", help="Flag to visualize outliers in the data.")
     parser.add_argument("--latex_table", action="store_true", help="Flag to generate LaTeX table of statistics.")
     parser.add_argument("--all_visualizations", action="store_true", help="Flag to generate all visualizations (boxplot, scatterplot, histograms, error analysis).")
-    parser.add_argument("fold", type=int, help="Fold number for analysis (used for naming outputs).")
+    parser.add_argument("--fold", type=int, default=None, help="Fold number for analysis (used for naming outputs).")
     args = parser.parse_args()
 
     main(input_csv=args.input_csv, all_visualizations=args.all_visualizations, visualize_boxplot=args.visualize_boxplot, visualize_scatterplot=args.visualize_scatterplot, visualize_histograms=args.visualize_histograms, visualize_error_analysis=args.visualize_error_analysis, latex_table=args.latex_table, fold=args.fold)
