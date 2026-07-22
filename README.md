@@ -180,7 +180,7 @@ _For errors, additional examples, and use cases, please refer to the main paper.
 
 ## Main Program 
 
-The StickleSnake pipeline is broken into two main components, to better divide the common tasks of image preprocessing (steps 1-3; label reading, cropping, and measuring) and landmarking (steps 4-5; model training and landmark application) as described in the publication. The orignal default (default: workflow/profiles/default/config.yaml) uses apptainer; change this path to the docker or singularity configurations if you prefer. 
+The StickleSnake pipeline is broken into three main components, to better divide the common tasks of image preprocessing (steps 1-3; label reading, cropping, and measuring), model training and evaluation (step 4) and landmark application (step 5) as described in the publication. The orignal default (default: workflow/profiles/default/config.yaml) uses apptainer; change this path to the docker or singularity configurations if you prefer. 
 
 ### Preprocessing step 
 
@@ -193,9 +193,18 @@ The following command will run all necessary steps up to the landmark training a
 snakemake --snakefile workflow/preprocessing.smk --profile workflow/profiles/default 
 ```
 
+### Training
+
+Check the config file (default: resources/configs/model_params.yaml) and the user profile (default: workflow/profiles/default/config.yaml) to ensure settings and filepaths are set correctly prior to use. This will run all steps for the training and k-fold validation of a dataset of provided images, including helpful output statitsics for evaluating a model's performance. This section can be rerun as many time as necessary with the following command.
+
+```bash
+snakemake --snakefile workflow/training.smk --profile workflow/profiles/default 
+```
+
+
 ### Landmarking
 
-Check the config file (default: resources/configs/model_params.yaml) and the user profile (default: workflow/profiles/default/config.yaml) to ensure settings and filepaths are set correctly prior to use. This will run all steps from landmark training to landmark analysis.
+Check the config file (default: resources/configs/landmarking_params.yaml) and the user profile (default: workflow/profiles/default/config.yaml) to ensure settings and filepaths are set correctly prior to use. This will run all steps for landmarking.
 
 ```bash
 snakemake --snakefile workflow/landmarking.smk --profile workflow/profiles/default 
