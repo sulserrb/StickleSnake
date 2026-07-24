@@ -51,7 +51,6 @@ rule preprocess_landmark_model:
     input: 
         directory = config["input_folder"],
         lands = "data/landmarks/cropped_input.tps",
-        fold_dir = "data/output/fold{fold}",
         fold_files = ["data/output/fold{fold}/test.txt", "data/output/fold{fold}/train.txt"]
     output: 
         "data/output/fold{fold}/train.xml",
