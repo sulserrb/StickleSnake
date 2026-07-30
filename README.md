@@ -46,6 +46,10 @@
 
 This repo contains all necessary files for StickleSnake, a 2D phenotyping pipeline for automatic measurement and analysis of threespine stickleback specimens. Also included are sample data and templates needed to run through the tutorial, which also recreates the key findings and steps in the main publication. 
 
+A pictoral diagram of the program, including the three main modules and file types for each step, is found below. For more information, read the rest of this guide, as well as the original publication. 
+
+![Diagram](workflow.pdf)
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
