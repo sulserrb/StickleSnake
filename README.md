@@ -48,7 +48,7 @@ This repo contains all necessary files for StickleSnake, a 2D phenotyping pipeli
 
 A pictoral diagram of the program, including the three main modules and file types for each step, is found below. For more information, read the rest of this guide, as well as the original publication. 
 
-![Diagram](workflow.pdf)
+![Diagram](Workflow.png)
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
