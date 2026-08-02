@@ -125,15 +125,15 @@ Finally, on the machine you intend to use this program, install the container. T
 
 * apptainer
 ```sh
-   apptainer pull docker://thoschiller/research_project
+   apptainer pull docker://thoschiller/stickle_tools
 ```
 * docker
 ```sh
-   docker pull thoschiller/research_project
+   docker pull thoschiller/stickle_tools
 ```
 * singularity
 ```sh
-   singularity pull docker://thoschiller/research_project
+   singularity pull docker://thoschiller/stickle_tools
 ```
 
 
