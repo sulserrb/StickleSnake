@@ -189,7 +189,7 @@ The StickleSnake pipeline is broken into three main components, to better divide
 ### Preprocessing step 
 
 Check the config file (default: resources/configs/StickleSnake.yaml) and the user profile (default: workflow/profiles/default/config.yaml) to ensure settings and filepaths are set correctly prior to use. 
-For default settings and following along with this tutorial, changing the path of the container directory should be all that is needed. 
+For default settings and following along with this tutorial, changing the path of the container directory should be all that is needed. If you want a custom-built detector (for example, for work on other species) see <https://github.com/ThoSch94/Stickle_Tools> for information on how to create your own, and be sure to link it in the configuration files. 
 
 The following command will run all necessary steps up to the landmark training and prediction:
 
