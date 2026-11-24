@@ -18,7 +18,7 @@ rename =  False
 flip = False
 
 #should OCR detection be visualized and saved on the image? 
-save_ocr_visualization = True
+save_ocr_visualization = False
 visualization_dir = r"/mnt/data/debug"
 
 #################################################################################################

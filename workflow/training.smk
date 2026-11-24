@@ -1,19 +1,25 @@
+configfile: "resources/configs/model_params.yaml" #We need to specify the config file that contains the parameters for the script
+
 if not config.get("included_by_parent", False): #set "all" rule when run independently, but not when running the whole pipeline
+    DATA_DIR = config.get("data_dir", "data")
     rule all:
         input:
-            "data/output/fold_summary_table.tex" #We need to specify the number of folds for cross-validation
+            f"{DATA_DIR}/output/fold_summary_table.tex" #We need to specify the number of folds for cross-validation
 
-configfile: "resources/configs/model_params.yaml" #We need to specify the config file that contains the parameters for the script
 
 #Adjust for zero based indexing
 FOLDS = range(1, int(config["folds"]) + 1)
 
+#Build paths for ease of use
+INPUT_TPS = f"{DATA_DIR}/{config['input_tps']}"
+INPUT_DIR = f"{DATA_DIR}/{config['input_folder']}"
+
 rule crop_lands: 
     input: 
-        lands =config["input_tps"], #We need to specify the input tps file that contains the landmark coordinates
-        directory = config["input_folder"], #We need to specify the directory that contains the cropped images, which will be used to match the landmark coordinates with the corresponding images
+        lands = INPUT_TPS, #We need to specify the input tps file that contains the landmark coordinates
+        directory = INPUT_DIR, #We need to specify the directory that contains the cropped images, which will be used to match the landmark coordinates with the corresponding images
     output: 
-        "data/landmarks/cropped_input.tps"
+        f"{DATA_DIR}/landmarks/cropped_input.tps"
     log: 
         notebook="logs/crop_lands.log"
     benchmark:
@@ -22,18 +28,18 @@ rule crop_lands:
         "python3 scripts/crop_tps_coordinates.py "
         "{input.lands} " 
         "{output} "
-        "{input.directory}"
+        "{input.directory} "
         "> {log.notebook} 2>&1"
 
 rule generate_folds: 
     input:
-        directory = "data/cropped_images/",
-        lands = "data/landmarks/cropped_input.tps"
+        directory = f"{DATA_DIR}/cropped_images/",
+        lands = f"{DATA_DIR}/landmarks/cropped_input.tps"
     params:
         kfolds = config["folds"] #We need to specify the number of folds for cross-validation
     output:
-        expand(["data/output/fold{fold}/test.txt",
-                "data/output/fold{fold}/train.txt"], 
+        expand([f"{DATA_DIR}/output/fold{{fold}}/test.txt",
+                f"{DATA_DIR}/output/fold{{fold}}/train.txt"], 
                 fold=FOLDS)
     conda: 
         "envs/ml_morph.yaml" #We need to specify the conda environment
@@ -44,19 +50,19 @@ rule generate_folds:
     shell:
         "python3 scripts/ml-morph_scripts/Kfold.py "
         "-i {input.directory} "
-        "-o data/output/ "
+        f"-o {DATA_DIR}/output/ "
         "-k {params.kfolds} "
 
 rule preprocess_landmark_model: 
     input: 
-        directory = config["input_folder"],
-        lands = "data/landmarks/cropped_input.tps",
-        fold_files = ["data/output/fold{fold}/test.txt", "data/output/fold{fold}/train.txt"]
+        directory = INPUT_DIR,
+        lands = f"{DATA_DIR}/landmarks/cropped_input.tps",
+        fold_files = [f"{DATA_DIR}/output/fold{{fold}}/test.txt", f"{DATA_DIR}/output/fold{{fold}}/train.txt"]
     output: 
-        "data/output/fold{fold}/train.xml",
-        "data/output/fold{fold}/test.xml",
-        temp(directory("data/output/fold{fold}/test/")),
-        temp(directory("data/output/fold{fold}/train/"))
+        f"{DATA_DIR}/output/fold{{fold}}/train.xml",
+        f"{DATA_DIR}/output/fold{{fold}}/test.xml",
+        temp(directory(f"{DATA_DIR}/output/fold{{fold}}/test/")),
+        temp(directory(f"{DATA_DIR}/output/fold{{fold}}/train/"))
     conda: 
         "envs/ml_morph.yaml" #We need to specify the conda environment
     log: 
@@ -69,14 +75,15 @@ rule preprocess_landmark_model:
         "-t {input.lands} "
         "-k True "
         "-f {wildcards.fold} "
+        "-o {DATA_DIR}/output/ "
         "> {log.notebook} 2>&1"
 
 rule train_landmark_models: 
     input: 
-        test = "data/output/fold{fold}/test.xml",
-        train = "data/output/fold{fold}/train.xml",
-        test_dir = "data/output/fold{fold}/test/",
-        train_dir = "data/output/fold{fold}/train/"
+        test = f"{DATA_DIR}/output/fold{{fold}}/test.xml",
+        train = f"{DATA_DIR}/output/fold{{fold}}/train.xml",
+        test_dir = f"{DATA_DIR}/output/fold{{fold}}/test/",
+        train_dir = f"{DATA_DIR}/output/fold{{fold}}/train/"
     output: 
         model = "models/landmark_model_{fold}.dat",
         metrics = "models/landmark_model_{fold}_metrics.csv"
@@ -100,14 +107,15 @@ rule train_landmark_models:
         "-s {config[test_splits]} "
         "-o {output.model} "
         "> {log.notebook} 2>&1"
-#Add rule comparing and choose best model for future use - unfinished! 
+#Coming soon: a rule to evaluate and automatically select best model based on metrics. 
 
 rule predict_landmarks_multifolds:
     input:
-        directory= config["input_folder"],
+        directory= INPUT_DIR,
         model = "models/landmark_model_{fold}.dat",
     output:
-        "data/output/predicted_landmarks_fold_{fold}.tps"
+        xml = f"{DATA_DIR}/output/predicted_landmarks_fold_{{fold}}.xml",
+        tps =f"{DATA_DIR}/output/predicted_landmarks_fold_{{fold}}.tps"
     conda: 
         "envs/ml_morph.yaml" #We need to specify the conda env
     log:
@@ -118,16 +126,16 @@ rule predict_landmarks_multifolds:
         "python3 scripts/ml-morph_scripts/prediction.py "
         "-i {input.directory} "
         "-p {input.model} "
-        "-o {output} "
+        "-o {output.xml} "
         "> {log.notebook} 2>&1"
 
 
 rule evaluate_landmark_predictions:
     input:
-        predicted = "data/output/predicted_landmarks_fold_{fold}.tps",
-        true = "data/landmarks/cropped_input.tps"
+        predicted = f"{DATA_DIR}/output/predicted_landmarks_fold_{{fold}}.tps",
+        true = f"{DATA_DIR}/landmarks/cropped_input.tps"
     output:
-        "data/output/landmark_distances_fold_{fold}.csv"
+        f"{DATA_DIR}/output/landmark_distances_fold_{{fold}}.csv"
     conda: 
         "envs/ml_morph.yaml" #We need to specify the conda env
     log:
@@ -143,9 +151,9 @@ rule evaluate_landmark_predictions:
 
 rule visualize_landmark_predictions:
     input:
-        land_data = "data/output/landmark_distances_fold_{fold}.csv",
+        land_data = f"{DATA_DIR}/output/landmark_distances_fold_{{fold}}.csv",
     output:
-        "data/output/results_table_fold_{fold}.tex"
+        f"{DATA_DIR}/output/results_table_fold_{{fold}}.tex"
     conda: 
         "envs/ml_morph.yaml" #We need to specify the conda env
     log:
@@ -157,14 +165,15 @@ rule visualize_landmark_predictions:
         "--input_csv {input.land_data} "
         "--all_visualizations "
         "--fold {wildcards.fold} "
+        "--output_dir {DATA_DIR}/output "
         "> {log.notebook} 2>&1"
 
 rule summarize_folds:
     input:
         expand("models/landmark_model_{fold}_metrics.csv", fold=FOLDS), 
-        expand("data/output/results_table_fold_{fold}.tex", fold=FOLDS), 
+        expand(f"{DATA_DIR}/output/results_table_fold_{{fold}}.tex", fold=FOLDS), 
     output:
-        "data/output/fold_summary_table.tex"
+        f"{DATA_DIR}/output/fold_summary_table.tex"
     conda: 
         "envs/metrics_env.yaml" #We need to specify the conda env
     log:

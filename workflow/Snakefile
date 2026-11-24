@@ -1,18 +1,20 @@
 configfile: "resources/configs/StickleSnake.yaml" #We need to specify the config file that contains the parameters for the script
 
+
 config["included_by_parent"] = True #Flag to suppress the "all" rule in included files
+DATA_DIR = config.get("data_dir", "data")
 
 include: "preprocessing.smk" #This is to include the preprocessing rules, which will be run before the landmarking rules. This allows us to separate the different steps of the pipeline into different files for better organization and readability.
 include: "training.smk" #This is to include the training rules, which will be run before the landmarking rules (and rerun if necessary) This allows us to separate the different steps of the pipeline into different files for better organization and readability.
-include: "landmarking.smk" #This is to include the landmarking rules. 
+include: "landmarking.smk" #This is to include the landmarking rules which apply a single model to all images post-preprocessing. 
 
 rule all: 
     input: 
-        "data/cropped_images", #indicating that the cropped images have been generated and saved in a new folder
-        "data/measurements/specimen_scales.csv", #indicating that the measurements have been extracted from the images and saved in a csv file
-        "data/output/predicted_landmarks.tps", #indicating that the landmarks have been predicted from the tps files (or otherwise provided)
-        "data/output/fold_summary_table.tex", #indicating that at least one results table has been generated for metrics comparing model accuracy
-        "data/measurements/.done", #indicating that the measurements have been generated and saved in a new file
-        "data/output/predicted_landmarks_scaled.tps" #indicating that the predicted landmarks have been scaled and saved in a new file
+        f"{DATA_DIR}/cropped_images", #indicating that the cropped images have been generated and saved in a new folder
+        f"{DATA_DIR}/measurements/specimen_scales.csv", #indicating that the measurements have been extracted from the images and saved in a csv file
+        f"{DATA_DIR}/output/predicted_landmarks.tps", #indicating that the landmarks have been predicted from the tps files (or otherwise provided)
+        f"{DATA_DIR}/output/fold_summary_table.tex", #indicating that at least one results table has been generated for metrics comparing model accuracy
+        f"{DATA_DIR}/measurements/.done", #indicating that the measurements have been generated and saved in a new file
+        f"{DATA_DIR}/output/predicted_landmarks_scaled.tps" #indicating that the predicted landmarks have been scaled and saved in a new file
     benchmark:
         "benchmarks/bench_all.txt" #This is to specify the benchmark file that will be used to record the execution time of the rules in the pipeline. This allows us to track the performance of the pipeline and identify any bottlenecks or areas for improvement.

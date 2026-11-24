@@ -18,7 +18,7 @@ assert os.path.isdir(args['input_dir']), "Could not find the folder {}".format(a
 #Changed and add Kfold here, adding a new function to import    
 if args['kfold']:
     print("Kfold mode enabled. Generating train and test files from Kfold splits.")
-    file_sizes=utils.split_train_test_kfold(args['input_dir'], fold = args['fold'])
+    file_sizes=utils.split_train_test_kfold(args['input_dir'], fold = args['fold'], output_dir = args['output_dir'])
 else:
     file_sizes=utils.split_train_test(args['input_dir'])
 
@@ -28,17 +28,17 @@ if args['kfold']:
     fold = args['fold']
     if args['csv_file'] is not None:
         dict_csv=utils.read_csv(args['csv_file'])
-        utils.generate_dlib_xml(dict_csv,file_sizes['train'],folder=f'data/output/fold{fold}/train',out_file=f'data/output/fold{fold}/train.xml')
-        utils.generate_dlib_xml(dict_csv,file_sizes['test'],folder=f'data/output/fold{fold}/test',out_file=f'data/output/fold{fold}/test.xml')
-        utils.dlib_xml_to_tps(f'data/output/fold{fold}/train.xml')
-        utils.dlib_xml_to_tps(f'data/output/fold{fold}/test.xml')
+        utils.generate_dlib_xml(dict_csv,file_sizes['train'],folder=f'{args["output_dir"]}fold{fold}/train',out_file=f'{args["output_dir"]}fold{fold}/train.xml')
+        utils.generate_dlib_xml(dict_csv,file_sizes['test'],folder=f'{args["output_dir"]}fold{fold}/test',out_file=f'{args["output_dir"]}fold{fold}/test.xml')
+        utils.dlib_xml_to_tps(f'{args["output_dir"]}fold{fold}/train.xml')
+        utils.dlib_xml_to_tps(f'{args["output_dir"]}fold{fold}/test.xml')
     
     if args['tps_file'] is not None:
         dict_tps=utils.read_tps(args['tps_file'])
-        utils.generate_dlib_xml(dict_tps,file_sizes['train'],folder=f'data/output/fold{fold}/train',out_file=f'data/output/fold{fold}/train.xml')
-        utils.generate_dlib_xml(dict_tps,file_sizes['test'],folder=f'data/output/fold{fold}/test',out_file=f'data/output/fold{fold}/test.xml')
-        utils.dlib_xml_to_tps(f'data/output/fold{fold}/train.xml')
-        utils.dlib_xml_to_tps(f'data/output/fold{fold}/test.xml')
+        utils.generate_dlib_xml(dict_tps,file_sizes['train'],folder=f'{args["output_dir"]}fold{fold}/train',out_file=f'{args["output_dir"]}fold{fold}/train.xml')
+        utils.generate_dlib_xml(dict_tps,file_sizes['test'],folder=f'{args["output_dir"]}fold{fold}/test',out_file=f'{args["output_dir"]}fold{fold}/test.xml')
+        utils.dlib_xml_to_tps(f'{args["output_dir"]}fold{fold}/train.xml')
+        utils.dlib_xml_to_tps(f'{args["output_dir"]}fold{fold}/test.xml')
 
 
 

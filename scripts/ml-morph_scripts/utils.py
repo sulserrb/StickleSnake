@@ -297,7 +297,7 @@ def predictions_to_xml(predictor_name:str,dir=str,ignore= None, out_file='output
     root.append(ET.Element('comment'))
     images_e = ET.Element('images')
     root.append(images_e)
-    for f in glob.glob(f'./{dir}/*'):
+    for f in glob.glob(os.path.join(dir, '*')):
         ext = ntpath.splitext(f)[1]
         if ext in extensions:
             path, file = os.path.split(f)

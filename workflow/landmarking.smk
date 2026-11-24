@@ -1,16 +1,21 @@
-if not config.get("included_by_parent", False): #set "all" rule when run independently, but not when running the whole pipeline
+configfile: "resources/configs/landmarking_params.yaml"
+
+if not config.get("included_by_parent", False):
+     #set "all" rule when run independently, but not when running the whole pipeline
+     #set local variable for data directory
+    DATA_DIR = config.get("data_dir", "data")
     rule all:
         input:
-            "data/output/predicted_landmarks_scaled.tps" #Run to retrieve scaled landmarks for all specimens
+            f"{DATA_DIR}/output/predicted_landmarks_scaled.tps" #Run to retrieve scaled landmarks for all specimens
 
-configfile: "resources/configs/landmarking_params.yaml"
 
 rule predict_landmarks:
     input:
-        directory= "data/cropped_images/",
+        directory= (f"{DATA_DIR}/cropped_images"),
         model = config["model_path"] #We need to specify the path to the trained model that will be used for prediction,
     output:
-        "data/output/predicted_landmarks.tps"
+        tps = f"{DATA_DIR}/output/predicted_landmarks.tps",
+        xml = f"{DATA_DIR}/output/predicted_landmarks.xml"
     conda: 
         "envs/ml_morph.yaml" #We need to specify the conda env
     log:
@@ -21,15 +26,15 @@ rule predict_landmarks:
         "python3 scripts/ml-morph_scripts/prediction.py "
         "-i {input.directory} "
         "-p {input.model} "
-        "-o {output} "
+        "-o {output.xml} "
         "> {log.notebook} 2>&1"
 
 rule apply_scales_to_landmarks:
     input:
-        predicted = "data/output/predicted_landmarks.tps",
-        scales = "data/measurements/specimen_scales.csv"
+        predicted = (f"{DATA_DIR}/output/predicted_landmarks.tps"),
+        scales = (f"{DATA_DIR}/measurements/specimen_scales.csv")
     output:
-        "data/output/predicted_landmarks_scaled.tps"
+        f"{DATA_DIR}/output/predicted_landmarks_scaled.tps"
     conda: 
         "envs/ml_morph.yaml" #We need to specify the conda env
     log:

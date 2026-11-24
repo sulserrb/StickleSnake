@@ -1,12 +1,15 @@
+#Configuration to set directory for downstream processing
+data_dir: "data"
+
 #Configuration for Machine Learning parameters for ML Morph, which is responsible for landmarking the stickleback images.
 threads: 16
 tree_depth: 2
 cascade_depth: 40
-nu_reg_param: 0.1
+nu_reg_param: 0.05
 oversampling: 300
 feature_size: 1200
 test_splits: 20
 num_trees: 500
-input_tps: "data/raw_images/Test_Input.TPS"
-input_folder: "data/cropped_images/"
+input_tps: "raw_images/Test_Input.TPS"
+input_folder: "cropped_images/"
 folds: 5

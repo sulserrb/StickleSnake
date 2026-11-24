@@ -108,12 +108,14 @@ def main(path, out_dir, pipeline_config_path, checkpoint_path, label_path, check
                     detected_object = image_np
                 detected_object = np.flip(detected_object, axis=1)
                 detected_object = np.flip(detected_object, axis=0)
-                if np.any(detected_object.shape) == 0:
-                    print(f"{file}: no detection")
+                if detected_object.size == 0:
+                    print(
+                        f"{file}: empty crop; shape={detected_object.shape}; "
+                        f"skipping..."
+                    )
+                    continue
                 else:
                     mpimg.imsave(output_file_path, detected_object)
-        else:
-            print(f"skipping file {file} (does not match) ")
 
 def convert_nef_to_jpg(nef_file_path):
     with rawpy.imread(nef_file_path) as raw:
@@ -190,25 +192,35 @@ def crop_image_to_bounding_box_max_score(image_np, detections, out_path = "", sa
     """
     max_score_index = np.argmax(detections['detection_scores'])
     ymin, xmin, ymax, xmax = detections['detection_boxes'][max_score_index]
+
     
     # Convert the normalized coordinates to pixel values
     (left, right, top, bottom) = (int(xmin * image_np.shape[1]), int(xmax * image_np.shape[1]),
                                   int(ymin * image_np.shape[0]), int(ymax * image_np.shape[0]))
+
+
+    #Quick fix to try to avoid cropping issues with padding on the margin of an image
+    h, w = image_np.shape[:2]
+    pad = 100
+    x_min = max(left - pad, 0)
+    x_max = min(right + pad, w)
+    y_min = max(top - pad, 0)
+    y_max = min(bottom + pad, h)
     if save_bbox_file:
         # Quick implementation of bounding box to files 
         os.makedirs(out_path, exist_ok=True)
         data = {
             "image_name": image_name,
-            "x_min": left-100,
-            "x_max": right+100,
-            "y_min": top-100,
-            "y_max": bottom+100,
+            "x_min": x_min,
+            "x_max": x_max,
+            "y_min": y_min,
+            "y_max": y_max,
             "image_size": image_np.shape
         }
         with open(out_path + "/" + image_name + ".json" , "w") as file:
             json.dump(data, file)
     # Crop the image to the bounding box with a 20-pixel margin
-    detected_object = image_np[top-100:bottom+100, left-100:right+100]
+    detected_object = image_np[y_min:y_max, x_min:x_max]
 
     return detected_object
 

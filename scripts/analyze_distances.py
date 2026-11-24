@@ -16,7 +16,7 @@ from tabulate import tabulate
 import argparse
 
 # Calculate descriptive statistics
-def calculate_statistics(data, fold=None):
+def calculate_statistics(data):
     """
     Group distances by landmark and compute statistical measures.
     Returns a DataFrame with mean, median, std, min, and max for each landmark.
@@ -41,18 +41,19 @@ def calculate_statistics(data, fold=None):
     return stats
 
 # Generate LaTeX table for report/publication
-def generate_latex_table(stats, fold=None):
+def generate_latex_table(stats, fold=None, output_dir="data/output/"):
     """
     Convert statistics DataFrame to LaTeX table format for use in documents.
     """
     stats = stats.rename(columns={"worst_outlier_image": "worst outlier image"})
     latex_table = tabulate(stats, headers='keys', tablefmt='latex', numalign="right")
     print("\nSaved LaTeX Table as results_table.tex\n")
-    with open(f'data/output/results_table_fold_{fold}.tex', 'w') as tf:
+    with open(f'{output_dir}/results_table_fold_{fold}.tex', 'w') as tf:
      tf.write(latex_table)
     return latex_table
 
-def visualize_data_boxplot(data, fold=None):  
+
+def visualize_data_boxplot(data, fold=None, output_dir="data/output/"):  
     """
     Visualize the distribution and outliers of distances for each landmark.
     Shows median, quartiles, and outliers in a compact format.
@@ -64,10 +65,10 @@ def visualize_data_boxplot(data, fold=None):
     plt.ylabel("Distance")
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.savefig(f'data/output/boxplot_distances_fold_{fold}.pdf')
+    plt.savefig(f'{output_dir}/boxplot_distances_fold_{fold}.pdf')
     #plt.show()
 
-def visualize_data_scatterplot(data, fold=None):
+def visualize_data_scatterplot(data, fold=None, output_dir="data/output/"):
     """Display each distance measurement as a point, colored by landmark.   
     Scatterplot: Individual distance points colored by landmark
     Useful for identifying individual data points and potential clusters.
@@ -88,10 +89,10 @@ def visualize_data_scatterplot(data, fold=None):
     plt.xticks(rotation=45)
     plt.legend(title="Landmark")
     plt.tight_layout()
-    plt.savefig(f'data/output/scatterplot_distances_fold_{fold}.pdf')
+    plt.savefig(f'{output_dir}/scatterplot_distances_fold_{fold}.pdf')
     #plt.show()
 
-def visualize_data_outliers(data, fold=None):
+def visualize_data_outliers(data, fold=None, output_dir="data/output/"):
     """
     Visualize the distribution and outliers of distances for each landmark.
     Shows median, quartiles, and outliers in a compact format.
@@ -103,10 +104,10 @@ def visualize_data_outliers(data, fold=None):
     plt.ylabel("Distance")
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.savefig(f'data/output/outliers_boxplot_fold_{fold}.pdf')
+    plt.savefig(f'{output_dir}/outliers_boxplot_fold_{fold}.pdf')
     #plt.show()
 
-def visualize_data_histograms(data, fold=None):
+def visualize_data_histograms(data, fold=None, output_dir="data/output/"):
     """
     Create a grid of histograms (one per landmark) with density curves.
     Each subplot shows the frequency distribution of distances for a single landmark.
@@ -139,10 +140,12 @@ def visualize_data_histograms(data, fold=None):
         fig.delaxes(axes[j])
 
     plt.tight_layout()
-    plt.savefig(f'data/output/histograms_distances_fold_{fold}.pdf')
+    plt.savefig(f'{output_dir}/histograms_distances_fold_{fold}.pdf')
     # plt.show()
 
-def main(input_csv="data/output/landmark_distances.csv", visualize_boxplot=False, visualize_scatterplot=False, visualize_histograms=False, visualize_error_analysis=False, latex_table=False, all_visualizations=False, fold=None):
+def main(input_csv="landmark_distances.csv", visualize_boxplot=False, visualize_scatterplot=False, visualize_histograms=False, visualize_error_analysis=False, latex_table=False, all_visualizations=False, fold=None, output_dir="data/output/"):
+
+    input_csv = f"{input_csv}"
 
     data = pd.read_csv(
         input_csv,
@@ -154,32 +157,33 @@ def main(input_csv="data/output/landmark_distances.csv", visualize_boxplot=False
     print(data.head())
 
 
-    stats = calculate_statistics(data, fold=fold)
+
+    stats = calculate_statistics(data)
 
     #flags to output different visualizations
     if visualize_boxplot:
         print("\nVisualizing boxplot of distances...\n")
-        visualize_data_boxplot(data, fold=fold)
+        visualize_data_boxplot(data, fold=fold, output_dir=output_dir)
     if visualize_scatterplot:
         print("\nVisualizing scatterplot of distances...\n")
-        visualize_data_scatterplot(data, fold=fold)
+        visualize_data_scatterplot(data, fold=fold, output_dir=output_dir)
     if visualize_histograms:
         print("\nVisualizing histograms of distances...\n")
-        visualize_data_histograms(data, fold=fold)
+        visualize_data_histograms(data, fold=fold, output_dir=output_dir)
     if visualize_error_analysis:
         print("\nVisualizing outliers in the data...\n")
-        visualize_data_outliers(data, fold=fold)
+        visualize_data_outliers(data, fold=fold, output_dir=output_dir)
     if latex_table:
         print("\nGenerating LaTeX table...\n")
-        generate_latex_table(stats, fold=fold)
+        generate_latex_table(stats, fold=fold, output_dir=output_dir)
 
     if all_visualizations:
         print("\nGenerating all visualizations...\n")
-        visualize_data_boxplot(data, fold=fold)
-        visualize_data_scatterplot(data, fold=fold)
-        visualize_data_histograms(data, fold=fold)
-        visualize_data_outliers(data, fold=fold)
-        latex_table = generate_latex_table(stats, fold=fold)
+        visualize_data_boxplot(data, fold=fold, output_dir=output_dir)
+        visualize_data_scatterplot(data, fold=fold, output_dir=output_dir)
+        visualize_data_histograms(data, fold=fold, output_dir=output_dir)
+        visualize_data_outliers(data, fold=fold, output_dir=output_dir)
+        latex_table = generate_latex_table(stats, fold=fold, output_dir=output_dir)
 
     
     #print(data)
@@ -189,7 +193,7 @@ def main(input_csv="data/output/landmark_distances.csv", visualize_boxplot=False
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Further analysis of landmark distance data.")
-    parser.add_argument("--input_csv", type=str, default="data/output/landmark_distances.csv", help="Path to the input CSV file containing landmark distances.")
+    parser.add_argument("--input_csv", type=str, default="landmark_distances.csv", help="Path to the input CSV file containing landmark distances.")
     parser.add_argument("--visualize_boxplot", action="store_true", help="Flag to visualize boxplot of distances.")
     parser.add_argument("--visualize_scatterplot", action="store_true", help="Flag to visualize scatterplot of distances.")
     parser.add_argument("--visualize_histograms", action="store_true", help="Flag to visualize histograms of distances.")
@@ -197,6 +201,7 @@ if __name__ == "__main__":
     parser.add_argument("--latex_table", action="store_true", help="Flag to generate LaTeX table of statistics.")
     parser.add_argument("--all_visualizations", action="store_true", help="Flag to generate all visualizations (boxplot, scatterplot, histograms, error analysis).")
     parser.add_argument("--fold", type=int, default=None, help="Fold number for analysis (used for naming outputs).")
+    parser.add_argument("--output_dir", type=str, default="data/output/", help="Directory to save output files (visualizations and LaTeX table).")
     args = parser.parse_args()
 
-    main(input_csv=args.input_csv, all_visualizations=args.all_visualizations, visualize_boxplot=args.visualize_boxplot, visualize_scatterplot=args.visualize_scatterplot, visualize_histograms=args.visualize_histograms, visualize_error_analysis=args.visualize_error_analysis, latex_table=args.latex_table, fold=args.fold)
+    main(input_csv=args.input_csv, all_visualizations=args.all_visualizations, visualize_boxplot=args.visualize_boxplot, visualize_scatterplot=args.visualize_scatterplot, visualize_histograms=args.visualize_histograms, visualize_error_analysis=args.visualize_error_analysis, latex_table=args.latex_table, fold=args.fold, output_dir=args.output_dir)

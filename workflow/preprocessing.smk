@@ -7,28 +7,37 @@ configfile: "resources/configs/StickleSnake.yaml"
 Max_Mem = config.get("system_mem_mb")   
 CROP_RESOURCES = {"mem_mb": int(Max_Mem)} if Max_Mem is not None else {}
 MEASURE_RESOURCES = {"mem_mb": int(Max_Mem * 0.25)} if Max_Mem is not None else {}
+CONTAINER_DATA = "/mnt/data/"
 
-if not config.get("included_by_parent", False): #set "all" rule when run independently, but not when running the whole pipeline
+if not config.get("included_by_parent", False):
+     #set "all" rule when run independently, but not when running the whole pipeline
+     #set local variable for data directory
+    DATA_DIR = config.get("data_dir", "data")
     rule all:
         input:
-            "data/cropped_images", #indicating that the cropped images have been generated and saved in a new folder
-            "data/measurements/specimen_scales.csv", #indicating that the measurements have been extracted from the images and saved in a csv file
+            f"{DATA_DIR}/cropped_images", #indicating that the cropped images have been generated and saved in a new folder
+            f"{DATA_DIR}/measurements/specimen_scales.csv", #indicating that the measurements have been extracted from the images and saved in a csv file
 
 
 def get_measurements(wildcards):
     # This line blocks until read_label checkpoint is done
     checkpoints.read_label.get()
     
-    # Now we can safely glob the renamed files
-    jpg_lower, = glob_wildcards("data/raw_images/{image_name}.jpg")
-    jpg_upper, = glob_wildcards("data/raw_images/{image_name}.JPG")
-    image_names = jpg_lower + jpg_upper
+    # Now we can safely grab the renamed files. A brave user can use glob here, but it will then pull in subdirectories
+    raw_dir = f"{DATA_DIR}/raw_images"
+    image_names = [
+        os.path.splitext(f)[0]
+        for f in os.listdir(raw_dir)
+        if f.lower().endswith(".jpg") and os.path.isfile(os.path.join(raw_dir, f))
+    ]
 
     #print(f"DEBUG: Found {len(image_names)} images: {image_names}")
     #print(f"DEBUG: Template name: {config['template_name']}")
     
+    #ADD: TEMPLATE CHECKING FROM scripts/measure_light_new.py HERE
+
     expected = expand(
-        "data/measurements/{image_name}_annotation_{template_name}.json",
+        f"{DATA_DIR}/measurements/{{image_name}}_annotation_{{template_name}}.json",
         image_name    = image_names,
         template_name = config["template_name"]
     )
@@ -37,19 +46,22 @@ def get_measurements(wildcards):
 
 checkpoint read_label: #Rule to read the label using a trained OCR model and save the output 
     input:
-        images_dir="data/raw_images" #input folder path
+        ancient(f"{DATA_DIR}/raw_images") #input folder path
     output:
-        "data/raw_images/label_log.json" #log file (robust in case files are renamed, as the log file will be saved in the same directory as the images)
+        f"{DATA_DIR}/raw_images/label_log.json" #log file (robust in case files are renamed, as the log file will be saved in the same directory as the images)
     container:
         config["container"] #We need to specify the container that contains the trained OCR model and the necessary dependencies to run the script
     log:
         notebook="logs/read_label.log" #log file path
+    params:
+        images_dir=f"{CONTAINER_DATA}/raw_images", #input folder path for the container, which is different from the input folder path for the host system. This is because the container has a different file system and the input folder path for the container is different from the input folder path for the host system. The input folder path for the container is specified in the config file and is used to bind the input folder path for the host system to the input folder path for the container.
+        log_file=f"{CONTAINER_DATA}/raw_images/label_log.json" #log file path for the container, which is different from the log file path for the host system. This is because the container has a different file system and the log file path for the container is different from the log file path for the host system. The log file path for the container is specified in the config file and is used to bind the log file path for the host system to the log file path for the container.
     benchmark:
         "benchmarks/bench_read_label.txt"
     shell:
         "python3 scripts/read_label.py "
-        "--log_file {config[log_file_label]} "
-        "--image_dir {input.images_dir} "
+        "--log_file {params.log_file} "
+        "--image_dir {params.images_dir} "
         "--flip {config[flip_label]} "
         "--pattern {config[pattern]} "
         "--rename {config[rename]} "
@@ -60,15 +72,18 @@ rule specimen_measurements_done: #Rule to create a checkpoint file indicating th
     input:
         get_measurements  
     output:
-        touch("data/measurements/.done")
+        touch(f"{DATA_DIR}/measurements/.done")
 
 
 rule crop_fish: #Rule to read a fish image, crop the fish using the bounding box coordinates obtained from the OCR model and save the cropped image in a new folder. This step is optional and can be skipped if the user only wants to read the labels without cropping the images. 
     input:
-        "data/raw_images/label_log.json", #log file generated by the read_label script, meaning that this has run to completion and the labels have been read successfully.
-        images_dir="data/raw_images" #input folder path
+        f"{DATA_DIR}/raw_images/label_log.json", #log file generated by the read_label script, meaning that this has run to completion and the labels have been read successfully.
+        images_dir=f"{DATA_DIR}/raw_images" #input folder path
     output:
-        directory("data/cropped_images") #folder of cropped images created by the script (robust in case files are renamed, as the cropped images will be saved in a new folder)
+        directory(f"{DATA_DIR}/cropped_images") #folder of cropped images created by the script (robust in case files are renamed, as the cropped images will be saved in a new folder)
+    params:
+        images_dir=f"{CONTAINER_DATA}/raw_images", #input folder path for the container, which is different from the input folder path for the host system. This is because the container has a different file system and the input folder path for the container is different from the input folder path for the host system. The input folder path for the container is specified in the config file and is used to bind the input folder path for the host system to the input folder path for the container.
+        output_dir=f"{CONTAINER_DATA}/cropped_images" #input folder path for the container, which is different from the input folder path for the host system. This is because the container has a different file system and the input folder path for the container is different from the input folder path for the host system. The input folder path for the container is specified in the config file and is used to bind the input folder path for the host system to the input folder path for the container.
     container:
         config["container"] #We need to specify the container that contains the trained model and the necessary dependencies to run the script
     resources:
@@ -79,9 +94,9 @@ rule crop_fish: #Rule to read a fish image, crop the fish using the bounding box
         "benchmarks/bench_crop_fish.txt"
     shell:
         "python3 scripts/crop_images.py "
-        "--path {input.images_dir} "
+        "--path {params.images_dir} "
         "--flip {config[right_side_up]} "
-        "--out_dir {output} "
+        "--out_dir {params.output_dir} "
         "--pipeline_config_path {config[crop_config]} "
         "--label_path {config[crop_label_file]} "
         "--checkpoint {config[checkpoint_prefix]} "
@@ -94,10 +109,10 @@ rule crop_fish: #Rule to read a fish image, crop the fish using the bounding box
 
 rule measure_fish: #Rule to extract the pixel/unit distance data from an image, using template matching
     input: 
-        "data/raw_images/label_log.json", #log file generated by the read_label script, meaning that this has run to completion and the labels have been read successfully.
+        f"{DATA_DIR}/raw_images/label_log.json", #log file generated by the read_label script, meaning that this has run to completion and the labels have been read successfully.
         image = lambda wildcards: next(
             f for ext in [".jpg", ".JPG"]
-            for f in [f"data/raw_images/{wildcards.image_name}{ext}"]
+            for f in [f"{DATA_DIR}/raw_images/{wildcards.image_name}{ext}"]
             if os.path.exists(f)
         ), #input folder path of cropped images
         template = "data/templates/template_{template_name}.png" #template image file generated by the earliest script, which contains the pixel/unit distance data for the template image. 
@@ -109,25 +124,29 @@ rule measure_fish: #Rule to extract the pixel/unit distance data from an image, 
     benchmark:
         "benchmarks/bench_measure_fish_{image_name}_{template_name}.txt"
     output:
-        annotation = "data/measurements/{image_name}_annotation_{template_name}.json" #folder containing the measurements of each file in "raw images"
+        annotation = f"{DATA_DIR}/measurements/{{image_name}}_annotation_{{template_name}}.json" #folder containing the measurements of each file in "raw images"
+    params:
+        output_dir=f"{DATA_DIR}/measurements"
     shell:
         "python3 scripts/measure_light.py "
         "--input_image {input.image} "
         "--input_template {input.template} "
         "--input_annotation data/templates/annotation_{wildcards.template_name}.json "
+        "--output_dir {params.output_dir} "
         "> {log.notebook} 2>&1"
-
 
 rule concatenate_measurements: #Rule to concatenate the measurements from all the images into a single csv file.
     input:
-        "data/measurements/.done" #input folder path of the measurements generated by the measure_fish rule, and indicating that this rule has finished on all files    
+        f"{DATA_DIR}/measurements/.done" #input folder path of the measurements generated by the measure_fish rule, and indicating that this rule has finished on all files    
     log:
         notebook="logs/concatenate_measurements.log" #log file path
     output:
-        "data/measurements/specimen_scales.csv" #csv file containing the concatenated measurements of all the images in the raw_images folder.
+        f"{DATA_DIR}/measurements/specimen_scales.csv" #csv file containing the concatenated measurements of all the images in the raw_images folder.
     benchmark:
         "benchmarks/bench_concatenate_measurements.txt"
     shell:
         "python3 scripts/Extract_Scales.py "
+        "--input_dir {DATA_DIR}/measurements "
+        "--output_csv {output} "
         "> {log.notebook} 2>&1"
 
