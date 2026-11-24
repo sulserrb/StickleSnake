@@ -2,7 +2,7 @@
 system_mem_mb: 128000 #Set this to match your system's available memory
 
 #Configuration to set directory for downstream processing. This should contain image files in "raw_images" subdirectory. The default is the /data directory included with the tutorial.
-data_dir: "/data"
+data_dir: "data"
 
 #Configuration for Step 1 of the stickleback pipeline, which is responsible for reading labels from raw images using a trained OCR model. The configuration includes parameters such as the log file path, whether to flip images, the regex pattern for valid labels, whether to rename files based on detected labels, and whether to save visualizations of OCR detections.
 log_file_label: /mnt/data/raw_images/label_log.json
